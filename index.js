@@ -2,6 +2,7 @@ const canvas = document.getElementById("board")
 const ctx = canvas.getContext("2d")
 const socket = new WebSocket("wss://clouddata.turbowarp.org/")
 
+const playerid = Math.random().toString(36).substring(2, 9)
 socket.addEventListener("open", () => { socket.send(JSON.stringify({method:"handshake",user:"player",project_id:"1133733472"})) })
 
 canvas.width = window.innerWidth
@@ -12,25 +13,32 @@ ctx.lineCap = 'round'
 
 let drawing = false
 let last = null
+let beginx, beginy
 
 canvas.addEventListener("mousedown", e => {
   drawing = true
-  ctx.beginPath()
-  ctx.moveTo(e.offsetX, e.offsetY)
-  socket.send(JSON.stringify({method:"set",user:"player",project_id:"1133733472",name:"☁ pos",value:`${e.offsetX}.${e.offsetY}`}))
+  beginx = e.offsetX
+  beginy = e.offsetY
+  socket.send(JSON.stringify({method:"set",user:"player",project_id:"1133733472",name:`☁ ${playerid}`,value:`${e.offsetX}.${e.offsetY}`}))
 })
 
 canvas.addEventListener("mouseup", () => {
   drawing = false
   last = null
-  socket.send(JSON.stringify({method:"set",user:"player",project_id:"1133733472",name:"☁ pos",value:"-1"}))
+  socket.send(JSON.stringify({method:"set",user:"player",project_id:"1133733472",name:`☁ ${playerid}`,value:"-1"}))
 })
 
 canvas.addEventListener("mousemove", e => {
   if (drawing) {
+    ctx.beginPath()
+    ctx.moveTo(beginx, beginy)
     ctx.lineTo(e.offsetX, e.offsetY)
     ctx.stroke()
-    socket.send(JSON.stringify({method:"set",user:"player",project_id:"1133733472",name:"☁ pos",value:`${e.offsetX}.${e.offsetY}`}))
+
+    beginx = e.offsetX
+    beginy = e.offsetY
+    
+    socket.send(JSON.stringify({method:"set",user:"player",project_id:"1133733472",name:`☁ ${playerid}`,value:`${e.offsetX}.${e.offsetY}`}))
   }
 })
 
